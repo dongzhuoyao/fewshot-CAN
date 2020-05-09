@@ -71,9 +71,9 @@ class CAM(nn.Module):
         a1 = self.get_attention(a1)
         a2 = self.get_attention(a2) 
 
-        f1 = f1.unsqueeze(2) * a1.unsqueeze(3)
+        f1 = f1.unsqueeze(2) * a1.unsqueeze(3)#[b,n1,1,c,wh]*[b,n1,n2,1,wh]->[b,n1,n2,c,wh]
         f1 = f1.view(b, n1, n2, c, h, w)
-        f2 = f2.unsqueeze(1) * a2.unsqueeze(3)
+        f2 = f2.unsqueeze(1) * a2.unsqueeze(3)#[b,1,n2,c,wh]*[b,n1,n2,1,wh]->[b,n1,n2,c,wh]
         f2 = f2.view(b, n1, n2, c, h, w)
 
         return f1.transpose(1, 2), f2.transpose(1, 2)
