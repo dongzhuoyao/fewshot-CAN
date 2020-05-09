@@ -39,14 +39,14 @@ class CAM(nn.Module):
                 m.weight.data.normal_(0, math.sqrt(2. / n))
 
     def get_attention(self, a):
-        input_a = a
+        input_a = a#[b,n1,n2,_wh,wh]
 
-        a = a.mean(3) 
-        a = a.transpose(1, 3) 
-        a = F.relu(self.conv1(a))
-        a = self.conv2(a) 
-        a = a.transpose(1, 3)
-        a = a.unsqueeze(3) 
+        a = a.mean(3) #[b,n1,n2,wh]
+        a = a.transpose(1, 3) #[b,wh,n2,n1]
+        a = F.relu(self.conv1(a))#[b,6,n2,n1]
+        a = self.conv2(a) #[b,36,n2,n1]
+        a = a.transpose(1, 3)#[b,n1,n2, 36]
+        a = a.unsqueeze(3) #[b,n1,n2, 36, 1]
         
         a = torch.mean(input_a * a, -1) 
         a = F.softmax(a / 0.025, dim=-1) + 1
@@ -62,11 +62,11 @@ class CAM(nn.Module):
         f1_norm = F.normalize(f1, p=2, dim=2, eps=1e-12)
         f2_norm = F.normalize(f2, p=2, dim=2, eps=1e-12)
         
-        f1_norm = f1_norm.transpose(2, 3).unsqueeze(2) 
-        f2_norm = f2_norm.unsqueeze(1)
+        f1_norm = f1_norm.transpose(2, 3).unsqueeze(2) #[b,n1,1,wh,c]
+        f2_norm = f2_norm.unsqueeze(1)#[b,1,n2,c,wh]
 
-        a1 = torch.matmul(f1_norm, f2_norm) 
-        a2 = a1.transpose(3, 4) 
+        a1 = torch.matmul(f1_norm, f2_norm) #[b,n1,n2,_wh,wh]
+        a2 = a1.transpose(3, 4) #[b,n1,n2,wh,_wh]
 
         a1 = self.get_attention(a1)
         a2 = self.get_attention(a2) 
